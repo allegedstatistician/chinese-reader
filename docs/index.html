@@ -3,110 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chinese Reader - 文章列表</title>
+    <title>Chinese Reader</title>
+    <meta http-equiv="refresh" content="0; url=2026-01-31.html">
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
             background: #fafafa;
             color: #333;
-        }
-        h1 {
-            font-size: 28px;
-            border-bottom: 2px solid #4CAF50;
-            padding-bottom: 10px;
-        }
-        .stats {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        .article-list {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        .article-item {
             display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-            transition: background 0.2s;
+            min-height: 100vh;
         }
-        .article-item:last-child { border-bottom: none; }
-        .article-item:hover { background: #f5f5f5; }
-        .article-item.read { background: #f9f9f9; }
-        .check {
-            font-size: 20px;
-            margin-right: 15px;
-            color: #ccc;
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
         }
-        .article-item.read .check {
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
             color: #4CAF50;
         }
-        .article-item a {
-            flex: 1;
-            display: flex;
-            justify-content: space-between;
-            text-decoration: none;
-            color: inherit;
+        .sidebar .stats {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
         }
-        .title { font-size: 18px; }
-        .date { color: #666; font-size: 14px; }
+        .month-group { margin-bottom: 20px; }
+        .month-header {
+            font-size: 13px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sidebar ul { list-style: none; }
+        .sidebar li {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            transition: background 0.2s;
+        }
+        .sidebar li:hover { background: #f5f5f5; }
+        .sidebar li.current { background: #e8f5e9; }
+        .sidebar li.read { opacity: 0.6; }
+        .sidebar li.read .check { color: #4CAF50; }
+        .sidebar .check {
+            font-size: 14px;
+            margin-right: 8px;
+            color: #ccc;
+            flex-shrink: 0;
+        }
+        .sidebar a {
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar a:hover { color: #4CAF50; }
+        
+        /* Main content */
+        .main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .date {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            line-height: 2.2;
+            font-size: 24px;
+        }
+        .known { cursor: help; }
+        .unknown {
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+            cursor: help;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: #333;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            z-index: 1000;
+            pointer-events: none;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .tooltip .pinyin { color: #4CAF50; font-weight: bold; }
+        .tooltip .english { color: #aaa; font-style: italic; }
+        
+        /* Read button */
+        .actions { margin-top: 30px; }
+        .read-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .read-btn.unread {
+            background: #4CAF50;
+            color: white;
+        }
+        .read-btn.unread:hover { background: #45a049; }
+        .read-btn.done {
+            background: #e8f5e9;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+        }
+        
+        /* Legend */
+        .legend {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+        .legend-unknown {
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+            padding: 0 4px;
+        }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+            body { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
-    <h1>📚 Chinese Reader</h1>
-    
-    <div class="stats" id="stats">
-        加载中...
-    </div>
-    
-    <div class="article-list">
+    <nav class="sidebar">
+        <h2>📚 Chinese Reader</h2>
+        <div class="stats">Loading...</div>
         
-            <div class="article-item" data-date="2026-01-31">
-                <span class="check" id="check-2026-01-31">○</span>
-                <a href="2026-01-31.html">
-                    <span class="title">我的家</span>
-                    <span class="date">2026-01-31</span>
-                </a>
-            </div>
-    </div>
-    
+        <div class="month-group">
+            <div class="month-header">January 2026</div>
+            <ul><li data-date="2026-01-31"><span class="check">○</span><a href="2026-01-31.html">我的家</a></li></ul>
+        </div>
+    </nav>
+    <main class="main">
+        <h1>Welcome</h1>
+        <p>Redirecting to the latest article...</p>
+        <p><a href="2026-01-31.html">Click here if not redirected</a></p>
+    </main>
     <script>
+        
         function getReadArticles() {
             return JSON.parse(localStorage.getItem('chineseReaderRead') || '[]');
         }
-        
-        function updateUI() {
+        function saveReadArticles(articles) {
+            localStorage.setItem('chineseReaderRead', JSON.stringify(articles));
+        }
+        function updateSidebar() {
             const read = getReadArticles();
-            const items = document.querySelectorAll('.article-item');
             let readCount = 0;
-            
-            items.forEach(item => {
-                const date = item.dataset.date;
-                const check = item.querySelector('.check');
+            document.querySelectorAll('.sidebar li').forEach(li => {
+                const date = li.dataset.date;
+                const check = li.querySelector('.check');
                 if (read.includes(date)) {
-                    item.classList.add('read');
+                    li.classList.add('read');
                     check.textContent = '✓';
                     readCount++;
                 } else {
-                    item.classList.remove('read');
+                    li.classList.remove('read');
                     check.textContent = '○';
                 }
             });
-            
-            document.getElementById('stats').textContent = 
-                `已读 ${readCount} / ${items.length} 篇文章`;
+            const stats = document.querySelector('.sidebar .stats');
+            const total = document.querySelectorAll('.sidebar li').length;
+            if (stats) stats.textContent = `${readCount} / ${total} articles read`;
         }
-        
-        updateUI();
+    
+        updateSidebar();
     </script>
 </body>
 </html>
