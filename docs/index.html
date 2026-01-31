@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的家 - Chinese Reader</title>
+    <title>Chinese Reader - 文章列表</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            line-height: 2;
-            font-size: 22px;
             background: #fafafa;
             color: #333;
         }
@@ -23,110 +19,94 @@
             border-bottom: 2px solid #4CAF50;
             padding-bottom: 10px;
         }
-        .date {
-            color: #666;
-            font-size: 14px;
+        .stats {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
             margin-bottom: 20px;
+            font-size: 16px;
         }
-        .content {
+        .article-list {
             background: white;
-            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        .known {
-            cursor: help;
+        .article-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
         }
-        .unknown {
-            background: #fff3cd;
-            border-bottom: 2px solid #ffc107;
-            cursor: help;
-            padding: 0 2px;
-            border-radius: 2px;
+        .article-item:last-child { border-bottom: none; }
+        .article-item:hover { background: #f5f5f5; }
+        .article-item.read { background: #f9f9f9; }
+        .check {
+            font-size: 20px;
+            margin-right: 15px;
+            color: #ccc;
         }
-        .tooltip {
-            position: fixed;
-            background: #333;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 16px;
-            z-index: 1000;
-            pointer-events: none;
-            max-width: 300px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .tooltip .pinyin {
+        .article-item.read .check {
             color: #4CAF50;
-            font-weight: bold;
         }
-        .tooltip .english {
-            color: #aaa;
-            font-style: italic;
+        .article-item a {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
         }
-        .legend {
-            margin-top: 30px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        .legend-item {
-            display: inline-block;
-            margin-right: 20px;
-        }
-        .legend-known {
-            color: #333;
-        }
-        .legend-unknown {
-            background: #fff3cd;
-            border-bottom: 2px solid #ffc107;
-            padding: 0 4px;
-        }
-        .stats {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #666;
-        }
+        .title { font-size: 18px; }
+        .date { color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h1>我的家</h1>
-    <div class="date">2026年01月31日 | HSK Level 1</div>
+    <h1>📚 Chinese Reader</h1>
     
-    <div class="content">
-        <span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="jiā" data-english="home">家</span><span class="known" data-pinyin="yǒu" data-english="to have">有</span><span class="known" data-pinyin="wǔ" data-english="five">五</span><span class="known" data-pinyin="gè" data-english="variant of 個|个[gè]">个</span><span class="known" data-pinyin="rén" data-english="man">人</span>：<span class="known" data-pinyin="bà ba" data-english="(informal) father">爸爸</span>、<span class="known" data-pinyin="mā ma" data-english="mama">妈妈</span>、<span class="unknown" data-pinyin="gē ge" data-english="older brother">哥哥</span>、<span class="unknown" data-pinyin="mèi mei" data-english="younger sister">妹妹</span><span class="known" data-pinyin="hé" data-english="and">和</span><span class="known" data-pinyin="wǒ" data-english="I">我</span>。<br><br><span class="known" data-pinyin="bà ba" data-english="(informal) father">爸爸</span><span class="known" data-pinyin="sì" data-english="four">四</span><span class="known" data-pinyin="shí" data-english="ten">十</span><span class="known" data-pinyin="wǔ" data-english="five">五</span><span class="known" data-pinyin="suì" data-english="classifier for years (of age)">岁</span>。<span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="gōng zuò" data-english="to work">工作</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="unknown" data-pinyin="máng" data-english="busy">忙</span>。<span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="xǐ huan" data-english="to like">喜欢</span><span class="known" data-pinyin="hē" data-english="to drink">喝</span><span class="known" data-pinyin="chá" data-english="tea">茶</span>。<br><br><span class="known" data-pinyin="mā ma" data-english="mama">妈妈</span><span class="known" data-pinyin="sì" data-english="four">四</span><span class="known" data-pinyin="shí" data-english="ten">十</span><span class="known" data-pinyin="sān" data-english="three">三</span><span class="known" data-pinyin="suì" data-english="classifier for years (of age)">岁</span>。<span class="known" data-pinyin="tā" data-english="she">她</span><span class="known" data-pinyin="zuò" data-english="to do">做</span><span class="unknown" data-pinyin="fàn" data-english="rice/meal">饭</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="known" data-pinyin="hǎo" data-english="good">好</span><span class="known" data-pinyin="chī" data-english="to eat">吃</span>。<span class="known" data-pinyin="tā" data-english="she">她</span><span class="known" data-pinyin="xǐ huan" data-english="to like">喜欢</span><span class="known" data-pinyin="mǎi" data-english="to buy">买</span><span class="known" data-pinyin="dōng xi" data-english="thing">东西</span>。<br><br><span class="unknown" data-pinyin="gē ge" data-english="older brother">哥哥</span><span class="known" data-pinyin="èr" data-english="two">二</span><span class="known" data-pinyin="shí" data-english="ten">十</span><span class="known" data-pinyin="suì" data-english="classifier for years (of age)">岁</span>。<span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="dà" data-english="big">大</span><span class="known" data-pinyin="xué sheng" data-english="student">学生</span>。<span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="xǐ huan" data-english="to like">喜欢</span><span class="known" data-pinyin="dǎ diàn huà" data-english="to make a telephone call">打电话</span>。<br><br><span class="unknown" data-pinyin="mèi mei" data-english="younger sister">妹妹</span><span class="known" data-pinyin="shí" data-english="ten">十</span><span class="known" data-pinyin="wǔ" data-english="five">五</span><span class="known" data-pinyin="suì" data-english="classifier for years (of age)">岁</span>。<span class="known" data-pinyin="tā" data-english="she">她</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="unknown" data-pinyin="zhōng xué shēng" data-english="middle school student">中学生</span>。<span class="known" data-pinyin="tā" data-english="she">她</span><span class="known" data-pinyin="xǐ huan" data-english="to like">喜欢</span><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="shū" data-english="book">书</span>。<br><br><span class="known" data-pinyin="wǒ men" data-english="we">我们</span><span class="known" data-pinyin="jiā" data-english="home">家</span><span class="known" data-pinyin="yǒu" data-english="to have">有</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="unknown" data-pinyin="zhī" data-english="measure word for animals">只</span><span class="known" data-pinyin="gǒu" data-english="dog">狗</span>。<span class="known" data-pinyin="gǒu" data-english="dog">狗</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="míng zi" data-english="name (of a person or thing)">名字</span><span class="known" data-pinyin="jiào" data-english="to shout">叫</span><span class="known" data-pinyin="xiǎo" data-english="small">小</span><span class="unknown" data-pinyin="bái" data-english="white">白</span>。<span class="unknown" data-pinyin="tā" data-english="it">它</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="unknown" data-pinyin="kě ài" data-english="cute/adorable">可爱</span>。<br><br><span class="known" data-pinyin="xīng qī" data-english="week">星期</span><span class="unknown" data-pinyin="tiān" data-english="day/sky">天</span>，<span class="known" data-pinyin="wǒ men" data-english="we">我们</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="unknown" data-pinyin="qǐ" data-english="to rise/together">起</span><span class="known" data-pinyin="chī" data-english="to eat">吃</span><span class="unknown" data-pinyin="fàn" data-english="rice/meal">饭</span>，<span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="diàn shì" data-english="television">电视</span>。<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="ài" data-english="to love">爱</span><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="jiā" data-english="home">家</span>。
+    <div class="stats" id="stats">
+        加载中...
     </div>
     
-    <div class="legend">
-        <span class="legend-item"><span class="legend-unknown">黄色高亮</span> = 超出HSK 1词汇 (hover查看释义)</span>
-        <span class="legend-item"><span class="legend-known">普通文字</span> = HSK 1词汇</span>
+    <div class="article-list">
+        
+            <div class="article-item" data-date="2026-01-31">
+                <span class="check" id="check-2026-01-31">○</span>
+                <a href="2026-01-31.html">
+                    <span class="title">我的家</span>
+                    <span class="date">2026-01-31</span>
+                </a>
+            </div>
     </div>
-    
-    <div id="tooltip" class="tooltip" style="display: none;"></div>
     
     <script>
-        const tooltip = document.getElementById('tooltip');
+        function getReadArticles() {
+            return JSON.parse(localStorage.getItem('chineseReaderRead') || '[]');
+        }
         
-        document.querySelectorAll('.known, .unknown').forEach(el => {
-            el.addEventListener('mouseenter', (e) => {
-                const pinyin = e.target.dataset.pinyin;
-                const english = e.target.dataset.english;
-                if (pinyin && english) {
-                    tooltip.innerHTML = `<span class="pinyin">${pinyin}</span><br><span class="english">${english}</span>`;
-                    tooltip.style.display = 'block';
+        function updateUI() {
+            const read = getReadArticles();
+            const items = document.querySelectorAll('.article-item');
+            let readCount = 0;
+            
+            items.forEach(item => {
+                const date = item.dataset.date;
+                const check = item.querySelector('.check');
+                if (read.includes(date)) {
+                    item.classList.add('read');
+                    check.textContent = '✓';
+                    readCount++;
+                } else {
+                    item.classList.remove('read');
+                    check.textContent = '○';
                 }
             });
             
-            el.addEventListener('mousemove', (e) => {
-                tooltip.style.left = (e.clientX + 15) + 'px';
-                tooltip.style.top = (e.clientY + 15) + 'px';
-            });
-            
-            el.addEventListener('mouseleave', () => {
-                tooltip.style.display = 'none';
-            });
-        });
+            document.getElementById('stats').textContent = 
+                `已读 ${readCount} / ${items.length} 篇文章`;
+        }
+        
+        updateUI();
     </script>
 </body>
 </html>

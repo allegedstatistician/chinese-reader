@@ -28,13 +28,6 @@ def load_hsk_vocab(level=1):
     
     return vocab
 
-def load_all_hsk_up_to(level):
-    """Load all HSK vocab up to and including the specified level"""
-    all_vocab = {}
-    for l in range(1, level + 1):
-        all_vocab.update(load_hsk_vocab(l))
-    return all_vocab
-
 def load_extra_vocab():
     """Load extra vocabulary for translations of unknown words"""
     vocab = {}
@@ -50,43 +43,11 @@ def load_extra_vocab():
     
     return vocab
 
-# Load extra vocab for unknown word translations
-extra_vocab = {}
-
-def segment_chinese(text):
-    """
-    Simple Chinese text segmentation
-    For production, consider jieba or other segmenters
-    This does basic character-by-character with known word matching
-    """
-    # Try to match longer words first
-    words = []
-    i = 0
-    while i < len(text):
-        # Try matching 4, 3, 2, 1 character words
-        matched = False
-        for length in [4, 3, 2]:
-            if i + length <= len(text):
-                chunk = text[i:i+length]
-                if chunk in hsk_vocab or is_chinese_word(chunk):
-                    words.append(chunk)
-                    i += length
-                    matched = True
-                    break
-        if not matched:
-            words.append(text[i])
-            i += 1
-    return words
-
 def is_chinese_char(char):
     """Check if character is Chinese"""
     return '\u4e00' <= char <= '\u9fff'
 
-def is_chinese_word(word):
-    """Check if string is Chinese characters"""
-    return all(is_chinese_char(c) for c in word)
-
-def process_text(text, known_vocab):
+def process_text(text, known_vocab, extra_vocab):
     """
     Process Chinese text and identify known/unknown words
     Returns list of (word, is_known, pinyin, english) tuples
@@ -117,7 +78,6 @@ def process_text(text, known_vocab):
         
         if not matched:
             # Unknown word - check extra vocab for translation
-            # Try multi-char matches in extra vocab
             found_extra = False
             for length in [4, 3, 2]:
                 if i + length <= len(text):
@@ -130,7 +90,6 @@ def process_text(text, known_vocab):
                         break
             
             if not found_extra:
-                # Single character unknown
                 if char in extra_vocab:
                     info = extra_vocab[char]
                     result.append((char, False, info['pinyin'], info['english']))
@@ -140,24 +99,21 @@ def process_text(text, known_vocab):
     
     return result
 
-def generate_html(title, processed_text, date_str):
-    """Generate HTML with hover tooltips"""
+def generate_article_html(title, processed_text, date_str, date_key):
+    """Generate HTML with hover tooltips and read tracking"""
     
     html_content = []
     for word, is_known, pinyin, english in processed_text:
         if not is_chinese_char(word[0]) if word else True:
-            # Non-Chinese, pass through
             if word == '\n':
                 html_content.append('<br>')
             else:
                 html_content.append(word)
         elif is_known:
-            # Known HSK word - subtle styling, still has tooltip
             html_content.append(
                 f'<span class="known" data-pinyin="{pinyin}" data-english="{english}">{word}</span>'
             )
         else:
-            # Unknown word - highlighted
             html_content.append(
                 f'<span class="unknown" data-pinyin="{pinyin}" data-english="{english}">{word}</span>'
             )
@@ -171,9 +127,7 @@ def generate_html(title, processed_text, date_str):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title} - Chinese Reader</title>
     <style>
-        * {{
-            box-sizing: border-box;
-        }}
+        * {{ box-sizing: border-box; }}
         body {{
             font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
             max-width: 800px;
@@ -184,11 +138,21 @@ def generate_html(title, processed_text, date_str):
             background: #fafafa;
             color: #333;
         }}
+        .header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }}
         h1 {{
             font-size: 28px;
             border-bottom: 2px solid #4CAF50;
             padding-bottom: 10px;
+            margin: 0;
         }}
+        .nav {{ font-size: 14px; }}
+        .nav a {{ color: #4CAF50; text-decoration: none; }}
+        .nav a:hover {{ text-decoration: underline; }}
         .date {{
             color: #666;
             font-size: 14px;
@@ -200,9 +164,7 @@ def generate_html(title, processed_text, date_str):
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }}
-        .known {{
-            cursor: help;
-        }}
+        .known {{ cursor: help; }}
         .unknown {{
             background: #fff3cd;
             border-bottom: 2px solid #ffc107;
@@ -222,14 +184,8 @@ def generate_html(title, processed_text, date_str):
             max-width: 300px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }}
-        .tooltip .pinyin {{
-            color: #4CAF50;
-            font-weight: bold;
-        }}
-        .tooltip .english {{
-            color: #aaa;
-            font-style: italic;
-        }}
+        .tooltip .pinyin {{ color: #4CAF50; font-weight: bold; }}
+        .tooltip .english {{ color: #aaa; font-style: italic; }}
         .legend {{
             margin-top: 30px;
             padding: 15px;
@@ -237,42 +193,98 @@ def generate_html(title, processed_text, date_str):
             border-radius: 6px;
             font-size: 14px;
         }}
-        .legend-item {{
-            display: inline-block;
-            margin-right: 20px;
-        }}
-        .legend-known {{
-            color: #333;
-        }}
+        .legend-item {{ display: inline-block; margin-right: 20px; }}
         .legend-unknown {{
             background: #fff3cd;
             border-bottom: 2px solid #ffc107;
             padding: 0 4px;
         }}
-        .stats {{
+        .read-btn {{
+            display: inline-block;
             margin-top: 20px;
-            font-size: 14px;
-            color: #666;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }}
+        .read-btn.unread {{
+            background: #4CAF50;
+            color: white;
+        }}
+        .read-btn.unread:hover {{
+            background: #45a049;
+        }}
+        .read-btn.read {{
+            background: #e8f5e9;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
         }}
     </style>
 </head>
 <body>
-    <h1>{title}</h1>
+    <div class="header">
+        <h1>{title}</h1>
+        <div class="nav"><a href="index.html">← 文章列表</a></div>
+    </div>
     <div class="date">{date_str} | HSK Level 1</div>
     
     <div class="content">
         {body_html}
     </div>
     
+    <button id="readBtn" class="read-btn unread" onclick="toggleRead()">
+        ✓ 标记已读
+    </button>
+    
     <div class="legend">
-        <span class="legend-item"><span class="legend-unknown">黄色高亮</span> = 超出HSK 1词汇 (hover查看释义)</span>
-        <span class="legend-item"><span class="legend-known">普通文字</span> = HSK 1词汇</span>
+        <span class="legend-item"><span class="legend-unknown">黄色高亮</span> = 超出HSK 1词汇</span>
+        <span class="legend-item">普通文字 = HSK 1词汇</span>
     </div>
     
     <div id="tooltip" class="tooltip" style="display: none;"></div>
     
     <script>
+        const DATE_KEY = '{date_key}';
         const tooltip = document.getElementById('tooltip');
+        const readBtn = document.getElementById('readBtn');
+        
+        function getReadArticles() {{
+            return JSON.parse(localStorage.getItem('chineseReaderRead') || '[]');
+        }}
+        
+        function saveReadArticles(articles) {{
+            localStorage.setItem('chineseReaderRead', JSON.stringify(articles));
+        }}
+        
+        function isRead() {{
+            return getReadArticles().includes(DATE_KEY);
+        }}
+        
+        function updateButton() {{
+            if (isRead()) {{
+                readBtn.textContent = '✓ 已读';
+                readBtn.className = 'read-btn read';
+            }} else {{
+                readBtn.textContent = '✓ 标记已读';
+                readBtn.className = 'read-btn unread';
+            }}
+        }}
+        
+        function toggleRead() {{
+            const articles = getReadArticles();
+            if (isRead()) {{
+                const idx = articles.indexOf(DATE_KEY);
+                articles.splice(idx, 1);
+            }} else {{
+                articles.push(DATE_KEY);
+            }}
+            saveReadArticles(articles);
+            updateButton();
+        }}
+        
+        updateButton();
         
         document.querySelectorAll('.known, .unknown').forEach(el => {{
             el.addEventListener('mouseenter', (e) => {{
@@ -283,12 +295,10 @@ def generate_html(title, processed_text, date_str):
                     tooltip.style.display = 'block';
                 }}
             }});
-            
             el.addEventListener('mousemove', (e) => {{
                 tooltip.style.left = (e.clientX + 15) + 'px';
                 tooltip.style.top = (e.clientY + 15) + 'px';
             }});
-            
             el.addEventListener('mouseleave', () => {{
                 tooltip.style.display = 'none';
             }});
@@ -297,11 +307,131 @@ def generate_html(title, processed_text, date_str):
 </body>
 </html>'''
 
+def generate_index_html(articles):
+    """Generate index page listing all articles with read status"""
+    
+    article_items = []
+    for art in sorted(articles, key=lambda x: x['date'], reverse=True):
+        article_items.append(f'''
+            <div class="article-item" data-date="{art['date']}">
+                <span class="check" id="check-{art['date']}">○</span>
+                <a href="{art['date']}.html">
+                    <span class="title">{art['title']}</span>
+                    <span class="date">{art['date']}</span>
+                </a>
+            </div>''')
+    
+    articles_html = '\n'.join(article_items)
+    
+    return f'''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese Reader - 文章列表</title>
+    <style>
+        * {{ box-sizing: border-box; }}
+        body {{
+            font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fafafa;
+            color: #333;
+        }}
+        h1 {{
+            font-size: 28px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }}
+        .stats {{
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }}
+        .article-list {{
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }}
+        .article-item {{
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }}
+        .article-item:last-child {{ border-bottom: none; }}
+        .article-item:hover {{ background: #f5f5f5; }}
+        .article-item.read {{ background: #f9f9f9; }}
+        .check {{
+            font-size: 20px;
+            margin-right: 15px;
+            color: #ccc;
+        }}
+        .article-item.read .check {{
+            color: #4CAF50;
+        }}
+        .article-item a {{
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+        }}
+        .title {{ font-size: 18px; }}
+        .date {{ color: #666; font-size: 14px; }}
+    </style>
+</head>
+<body>
+    <h1>📚 Chinese Reader</h1>
+    
+    <div class="stats" id="stats">
+        加载中...
+    </div>
+    
+    <div class="article-list">
+        {articles_html}
+    </div>
+    
+    <script>
+        function getReadArticles() {{
+            return JSON.parse(localStorage.getItem('chineseReaderRead') || '[]');
+        }}
+        
+        function updateUI() {{
+            const read = getReadArticles();
+            const items = document.querySelectorAll('.article-item');
+            let readCount = 0;
+            
+            items.forEach(item => {{
+                const date = item.dataset.date;
+                const check = item.querySelector('.check');
+                if (read.includes(date)) {{
+                    item.classList.add('read');
+                    check.textContent = '✓';
+                    readCount++;
+                }} else {{
+                    item.classList.remove('read');
+                    check.textContent = '○';
+                }}
+            }});
+            
+            document.getElementById('stats').textContent = 
+                `已读 ${{readCount}} / ${{items.length}} 篇文章`;
+        }}
+        
+        updateUI();
+    </script>
+</body>
+</html>'''
+
 # Sample stories for HSK 1 level
 SAMPLE_STORIES = [
-    {
-        "title": "我的一天",
-        "content": """今天是星期一。我早上六点起床。
+    {"title": "我的一天", "content": """今天是星期一。我早上六点起床。
 
 我先喝茶，然后吃饭。我吃米饭和菜。
 
@@ -315,11 +445,8 @@ SAMPLE_STORIES = [
 
 晚上我看电视。我喜欢看电影。
 
-十点我睡觉。今天很好！"""
-    },
-    {
-        "title": "我的家",
-        "content": """我家有五个人：爸爸、妈妈、哥哥、妹妹和我。
+十点我睡觉。今天很好！"""},
+    {"title": "我的家", "content": """我家有五个人：爸爸、妈妈、哥哥、妹妹和我。
 
 爸爸四十五岁。他工作很忙。他喜欢喝茶。
 
@@ -331,11 +458,8 @@ SAMPLE_STORIES = [
 
 我们家有一只狗。狗的名字叫小白。它很可爱。
 
-星期天，我们一起吃饭，看电视。我爱我的家。"""
-    },
-    {
-        "title": "去商店",
-        "content": """今天是星期六。我和妈妈去商店买东西。
+星期天，我们一起吃饭，看电视。我爱我的家。"""},
+    {"title": "去商店", "content": """今天是星期六。我和妈妈去商店买东西。
 
 商店很大。里面有很多人。
 
@@ -349,8 +473,7 @@ SAMPLE_STORIES = [
 
 我们买了很多东西。我们很高兴。
 
-下午我们回家。妈妈做饭，我看书。今天很好！"""
-    }
+下午我们回家。妈妈做饭，我看书。今天很好！"""}
 ]
 
 def get_story_for_date(date):
@@ -363,41 +486,53 @@ hsk_vocab = load_hsk_vocab(1)
 extra_vocab = load_extra_vocab()
 
 def main():
-    """Generate today's article"""
+    """Generate today's article and update index"""
     today = datetime.now()
     date_str = today.strftime("%Y年%m月%d日")
+    date_key = today.strftime("%Y-%m-%d")
+    
+    output_dir = Path(__file__).parent / "docs"
+    output_dir.mkdir(exist_ok=True)
     
     # Get today's story
     story = get_story_for_date(today)
     
     # Process the text
-    processed = process_text(story['content'], hsk_vocab)
+    processed = process_text(story['content'], hsk_vocab, extra_vocab)
     
     # Count stats
     total_chars = sum(1 for w, _, _, _ in processed if w and is_chinese_char(w[0]))
     known_chars = sum(1 for w, known, _, _ in processed if w and known and is_chinese_char(w[0]))
     
-    # Generate HTML
-    html = generate_html(story['title'], processed, date_str)
+    # Generate article HTML
+    html = generate_article_html(story['title'], processed, date_str, date_key)
     
-    # Save to file
-    output_dir = Path(__file__).parent / "docs"
-    output_dir.mkdir(exist_ok=True)
-    
-    # Save as index.html (always latest)
-    with open(output_dir / "index.html", 'w', encoding='utf-8') as f:
-        f.write(html)
-    
-    # Also save dated version
-    dated_filename = today.strftime("%Y-%m-%d") + ".html"
+    # Save dated version
+    dated_filename = date_key + ".html"
     with open(output_dir / dated_filename, 'w', encoding='utf-8') as f:
         f.write(html)
     
+    # Build article list from all HTML files
+    articles = []
+    for html_file in output_dir.glob("????-??-??.html"):
+        date = html_file.stem
+        # Read title from file
+        with open(html_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            title_match = re.search(r'<h1>(.+?)</h1>', content)
+            title = title_match.group(1) if title_match else date
+        articles.append({'date': date, 'title': title})
+    
+    # Generate index
+    index_html = generate_index_html(articles)
+    with open(output_dir / "index.html", 'w', encoding='utf-8') as f:
+        f.write(index_html)
+    
     print(f"Generated: {story['title']}")
     print(f"Stats: {known_chars}/{total_chars} characters are HSK 1 vocab")
-    print(f"Saved to: {output_dir / 'index.html'}")
+    print(f"Articles in index: {len(articles)}")
     
-    return output_dir / "index.html"
+    return date_key
 
 if __name__ == "__main__":
     main()
