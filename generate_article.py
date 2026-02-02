@@ -12,8 +12,22 @@ from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
 
+def load_main_vocab():
+    """Load main vocabulary (frequency-based 300 chars + HSK1 + curated additions)"""
+    vocab = {}
+    csv_path = Path(__file__).parent / "vocab_main.csv"
+    
+    if csv_path.exists():
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) >= 3:
+                    chinese, pinyin, english = row[0], row[1], row[2]
+                    vocab[chinese] = {'pinyin': pinyin, 'english': english}
+    return vocab
+
 def load_hsk_vocab(level=1):
-    """Load HSK vocabulary from CSV files"""
+    """Load HSK vocabulary from CSV files (legacy, kept for compatibility)"""
     vocab = {}
     csv_path = Path(__file__).parent / f"hsk{level}.csv"
     
@@ -369,7 +383,7 @@ def generate_article_html(title, processed_text, date_str, date_key, sidebar_htm
     
     <main class="main">
         <h1>{title}</h1>
-        <div class="date">{date_str} · HSK Level 1</div>
+        <div class="date">{date_str} · Level 1 · 300 chars</div>
         
         <div class="content">{body_html}</div>
         
@@ -475,57 +489,139 @@ def generate_index_html(sidebar_html, latest_article):
 </html>'''
 
 SAMPLE_STORIES = [
-    {"title": "我的一天", "content": """今天是星期一。我早上六点起床。
+    {"title": "小明的问题", "content": """小明是一个学生。他十二岁，在中学读书。
 
-我先喝茶，然后吃饭。我吃米饭和菜。
+小明有一个问题。他不知道自己以后想做什么工作。他的朋友们都知道，但是他不知道。
 
-八点我去学校。我坐出租车去。
+有一天，小明问他的爸爸："爸爸，你小时候想做什么？"
 
-在学校，我学习中文。老师很好。我们看书，写字。
+爸爸说："我小时候想当老师。"
 
-中午十二点，我和朋友吃饭。我们去饭店。我喜欢吃中国菜。
+"为什么？"小明问。
 
-下午我在学校读书。五点我回家。
+"因为我喜欢和人说话，喜欢学习新的东西。"爸爸说。
 
-晚上我看电视。我喜欢看电影。
+小明又问妈妈同样的问题。妈妈说她小时候想当医生，因为她想帮助别人。
 
-十点我睡觉。今天很好！"""},
-    {"title": "我的家", "content": """我家有五个人：爸爸、妈妈、哥哥、妹妹和我。
+小明想了很多天。他发现自己喜欢写东西，喜欢看书，也喜欢问问题。
 
-爸爸四十五岁。他工作很忙。他喜欢喝茶。
+最后，小明对爸爸妈妈说："我以后想当作家！我要写很多书，让很多人看。"
 
-妈妈四十三岁。她做饭很好吃。她喜欢买东西。
+爸爸妈妈听了很高兴。他们说："很好！做你喜欢的事情，你会很快乐。"
 
-哥哥二十岁。他是大学生。他喜欢打电话。
+从那天起，小明每天都写一些东西。他知道，只要他努力，他的梦想一定会实现。"""},
 
-妹妹十五岁。她是中学生。她喜欢看书。
+    {"title": "老人和大海", "content": """在一个小村子里，住着一个老人。他每天都去海边。
 
-我们家有一只狗。狗的名字叫小白。它很可爱。
+老人没有家人，只有一条小船。他每天早上出海，晚上回来。
 
-星期天，我们一起吃饭，看电视。我爱我的家。"""},
-    {"title": "去商店", "content": """今天是星期六。我和妈妈去商店买东西。
+有一天，一个小孩问老人："你为什么每天都去海上？你不怕吗？"
 
-商店很大。里面有很多人。
+老人笑了笑说："大海是我的老朋友。我们认识很多年了。"
 
-我想买一本书。那本书很好看。
+"大海会说话吗？"小孩问。
 
-妈妈想买水果。苹果三块钱一斤。妈妈买了五斤。
+"不会说话，但是我能听懂它。"老人说，"海水的声音告诉我很多事情。"
 
-我们也买了一些茶。爸爸很喜欢喝茶。
+小孩不太明白，但是他很想知道更多。
 
-在商店，我看见一只小猫。它很可爱！
+老人说："你想和我一起去看看吗？"
 
-我们买了很多东西。我们很高兴。
+小孩很高兴，他们一起上了船。
 
-下午我们回家。妈妈做饭，我看书。今天很好！"""}
+在海上，老人教小孩看天空，听海水，感受风。
+
+"你看，"老人说，"天上的云告诉我们明天会下雨。海水的颜色告诉我们这里有很多鱼。"
+
+小孩第一次感到大海是活的。从那天起，他经常和老人一起出海。
+
+很多年后，小孩长大了。他也成为了一个会听懂大海的人。"""},
+
+    {"title": "两个朋友", "content": """小红和小白是好朋友。她们每天一起上学，一起回家。
+
+小红喜欢说话，小白喜欢听。小红走路很快，小白走路很慢。她们不一样，但是她们是最好的朋友。
+
+有一天，她们吵架了。小红说小白太慢，小白说小红太快。两个人都很生气，决定不做朋友了。
+
+第二天，小红一个人上学。路上她看见一只小鸟，想告诉小白，但是小白不在。她觉得很没意思。
+
+小白也一个人上学。她想问小红一个问题，但是小红不在。她觉得很不开心。
+
+一个星期后，她们在学校门口遇见了。
+
+小红先开口说："对不起，我不应该说你太慢。"
+
+小白也说："对不起，我也不应该生气。"
+
+两个人都笑了。从那天起，她们还是好朋友。
+
+她们明白了一件事：真正的朋友，不需要一样，只需要互相理解。"""},
+
+    {"title": "北京的一天", "content": """今年夏天，我和家人去了北京。这是我第一次去北京。
+
+我们早上六点起床，先去了天安门。那里人很多，大家都在看升旗。
+
+然后我们去了故宫。故宫很大很大，我们走了三个小时。里面有很多老房子，每个房子都有自己的故事。
+
+中午，我们在一家小饭店吃饭。我吃了北京烤鸭，真的很好吃！爸爸说这是北京最有名的菜。
+
+下午，我们去了长城。长城很长，我们只走了一小部分。站在长城上，我能看见很远的地方。我想，古时候的人真的很了不起。
+
+晚上回到酒店，我很累但是很高兴。
+
+妈妈问我："你最喜欢今天的什么？"
+
+我想了想说："我最喜欢长城。因为我知道了，古人为了保护自己的国家，可以做很难的事情。"
+
+这一天，我学到了很多东西。北京，我以后还会再来的！"""},
+
+    {"title": "一本旧书", "content": """我的房间里有很多书。但是有一本书最特别，因为它是我外公的。
+
+外公去年去世了。在他的东西里，我发现了这本旧书。书很旧，有些地方已经看不清楚了。
+
+这本书是一本日记。外公从二十岁开始写，一直写到八十岁。六十年的时间，都在这本书里。
+
+我一页一页地看。我看到外公年轻时候的梦想，他的工作，他的朋友。我看到他遇见外婆的那一天，我看到爸爸出生的那一天。
+
+书里有很多我不知道的故事。原来外公小时候家里很穷，但是他很努力学习。原来外公年轻的时候想当画家，但是后来当了老师。
+
+最让我感动的是最后几页。外公写道："我这一生最幸福的事，就是看着我的孩子和孙子长大。"
+
+看完这本书，我哭了。我决定，我也要开始写日记。也许很多年以后，我的孙子也会看到我的故事。
+
+外公虽然不在了，但是他的故事会一直在。"""},
+
+    {"title": "雨天的故事", "content": """今天下雨了。我坐在窗口，看着外面的雨。
+
+雨不大，但是下了很久。街上的人都打着伞，走得很快。只有一个老人，他没有伞，但是走得很慢。
+
+我很奇怪，为什么他不走快一点？
+
+妈妈看见我在看窗外，问我在想什么。我告诉她关于那个老人的事。
+
+妈妈说："也许他不怕雨，也许他在想事情，也许他只是喜欢慢慢走。每个人都有自己的原因。"
+
+我想了想，觉得妈妈说得对。我们不能知道别人心里想什么。
+
+过了一会儿，雨停了。太阳出来了，天上有一道彩虹。
+
+我跑出去，想更近地看彩虹。在门口，我看见了那个老人。他也在看彩虹，脸上带着微笑。
+
+我突然明白了。也许他就是在等这个——等雨停，等太阳出来，等彩虹。
+
+有时候，慢一点，可以看见更多美好的东西。"""}
 ]
 
 def get_story_for_date(date):
     day_of_year = date.timetuple().tm_yday
     return SAMPLE_STORIES[day_of_year % len(SAMPLE_STORIES)]
 
-hsk_vocab = load_hsk_vocab(1)
+# Load main vocabulary (417 characters: top 300 frequency + HSK1 + curated)
+main_vocab = load_main_vocab()
 extra_vocab = load_extra_vocab()
+
+# Legacy alias for compatibility
+hsk_vocab = main_vocab
 
 def main():
     """Generate today's article and rebuild all pages with updated sidebar"""
@@ -610,7 +706,7 @@ def main():
     
     <main class="main">
         <h1>{title}</h1>
-        <div class="date">{art_date_str} · HSK Level 1</div>
+        <div class="date">{art_date_str} · Level 1 · 300 chars</div>
         
         <div class="content">{body_html}</div>
         
@@ -697,7 +793,7 @@ def main():
     known_chars = sum(1 for w, known, _, _ in processed if w and known and is_chinese_char(w[0]))
     
     print(f"Generated: {story['title']}")
-    print(f"Stats: {known_chars}/{total_chars} characters are HSK 1 vocab")
+    print(f"Stats: {known_chars}/{total_chars} characters in main vocab")
     print(f"Articles: {len(articles)}")
     
     # Report any unknown characters that need to be added to vocab
