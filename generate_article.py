@@ -44,6 +44,10 @@ def is_chinese_char(char):
     return '\u4e00' <= char <= '\u9fff'
 
 def process_text(text, known_vocab, extra_vocab):
+    """
+    Process Chinese text - check BOTH vocabs together, prioritizing longer matches.
+    This prevents issues like "里面" being split into "里" (HSK1) + "面" (unknown).
+    """
     result = []
     i = 0
     
@@ -55,36 +59,36 @@ def process_text(text, known_vocab, extra_vocab):
             i += 1
             continue
         
-        matched = False
+        # Try to find the longest match from EITHER vocab
+        best_match = None
+        best_length = 0
+        best_is_known = False
+        
         for length in [4, 3, 2, 1]:
             if i + length <= len(text):
                 chunk = text[i:i+length]
-                if chunk in known_vocab:
-                    info = known_vocab[chunk]
-                    result.append((chunk, True, info['pinyin'], info['english']))
-                    i += length
-                    matched = True
-                    break
+                # Check both vocabs, prefer known (HSK) for same length
+                if chunk in known_vocab and length > best_length:
+                    best_match = chunk
+                    best_length = length
+                    best_is_known = True
+                elif chunk in extra_vocab and length > best_length:
+                    best_match = chunk
+                    best_length = length
+                    best_is_known = False
         
-        if not matched:
-            found_extra = False
-            for length in [4, 3, 2]:
-                if i + length <= len(text):
-                    chunk = text[i:i+length]
-                    if chunk in extra_vocab:
-                        info = extra_vocab[chunk]
-                        result.append((chunk, False, info['pinyin'], info['english']))
-                        i += length
-                        found_extra = True
-                        break
-            
-            if not found_extra:
-                if char in extra_vocab:
-                    info = extra_vocab[char]
-                    result.append((char, False, info['pinyin'], info['english']))
-                else:
-                    result.append((char, False, '?', '?'))
-                i += 1
+        if best_match:
+            if best_is_known:
+                info = known_vocab[best_match]
+                result.append((best_match, True, info['pinyin'], info['english']))
+            else:
+                info = extra_vocab[best_match]
+                result.append((best_match, False, info['pinyin'], info['english']))
+            i += best_length
+        else:
+            # No match found - unknown character
+            result.append((char, False, '?', '?'))
+            i += 1
     
     return result
 
