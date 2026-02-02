@@ -86,11 +86,15 @@ def process_text(text, known_vocab, extra_vocab):
                 result.append((best_match, False, info['pinyin'], info['english']))
             i += best_length
         else:
-            # No match found - unknown character
+            # No match found - log unknown character for review
+            unknown_chars.add(char)
             result.append((char, False, '?', '?'))
             i += 1
     
     return result
+
+# Track unknown characters globally for reporting
+unknown_chars = set()
 
 def build_sidebar_html(articles, current_date=None):
     """Build sidebar HTML organized by month"""
@@ -525,6 +529,9 @@ extra_vocab = load_extra_vocab()
 
 def main():
     """Generate today's article and rebuild all pages with updated sidebar"""
+    global unknown_chars
+    unknown_chars = set()  # Reset for this run
+    
     today = datetime.now()
     date_str = today.strftime("%B %d, %Y")
     date_key = today.strftime("%Y-%m-%d")
@@ -692,6 +699,11 @@ def main():
     print(f"Generated: {story['title']}")
     print(f"Stats: {known_chars}/{total_chars} characters are HSK 1 vocab")
     print(f"Articles: {len(articles)}")
+    
+    # Report any unknown characters that need to be added to vocab
+    if unknown_chars:
+        print(f"\n⚠️  UNKNOWN CHARACTERS FOUND: {', '.join(sorted(unknown_chars))}")
+        print("Add these to extra_vocab.csv to fix '?' tooltips")
     
     return date_key
 
