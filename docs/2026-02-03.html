@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一本旧书 - Chinese Reader</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #fafafa;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #4CAF50;
+        }
+        .sidebar .stats {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .month-group { margin-bottom: 20px; }
+        .month-header {
+            font-size: 13px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sidebar ul { list-style: none; }
+        .sidebar li {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            transition: background 0.2s;
+        }
+        .sidebar li:hover { background: #f5f5f5; }
+        .sidebar li.current { background: #e8f5e9; }
+        .sidebar li.read { opacity: 0.6; }
+        .sidebar li.read .check { color: #4CAF50; }
+        .sidebar .check {
+            font-size: 14px;
+            margin-right: 8px;
+            color: #ccc;
+            flex-shrink: 0;
+        }
+        .sidebar a {
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar a:hover { color: #4CAF50; }
+        
+        /* Main content */
+        .main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .date {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            line-height: 2.2;
+            font-size: 24px;
+        }
+        .known { cursor: help; }
+        .unknown {
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+            cursor: help;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: #333;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            z-index: 1000;
+            pointer-events: none;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .tooltip .pinyin { color: #4CAF50; font-weight: bold; }
+        .tooltip .english { color: #aaa; font-style: italic; }
+        
+        /* Read button */
+        .actions { margin-top: 30px; }
+        .read-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .read-btn.unread {
+            background: #4CAF50;
+            color: white;
+        }
+        .read-btn.unread:hover { background: #45a049; }
+        .read-btn.done {
+            background: #e8f5e9;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+        }
+        
+        /* Legend */
+        .legend {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+        .legend-unknown {
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+            padding: 0 4px;
+        }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+            body { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h2>📚 Chinese Reader</h2>
+        <div class="stats">Loading...</div>
+        
+        <div class="month-group">
+            <div class="month-header">February 2026</div>
+            <ul><li data-date="2026-02-03" class="current"><span class="check">○</span><a href="2026-02-03.html">一本旧书</a></li><li data-date="2026-02-02"><span class="check">○</span><a href="2026-02-02.html">北京的一天</a></li></ul>
+        </div>
+    </nav>
+    
+    <main class="main">
+        <h1>一本旧书</h1>
+        <div class="date">February 03, 2026 · Level 1 · 300 chars</div>
+        
+        <div class="content"><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="unknown" data-pinyin="fáng" data-english="house/room">房</span><span class="known" data-pinyin="jiān" data-english="midpoint">间</span><span class="known" data-pinyin="lǐ" data-english="li (Chinese mile)">里</span><span class="known" data-pinyin="yǒu" data-english="to have">有</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="known" data-pinyin="duō" data-english="many">多</span><span class="known" data-pinyin="shū" data-english="book">书</span>。<span class="known" data-pinyin="dàn" data-english="only">但</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="yǒu" data-english="to have">有</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="known" data-pinyin="běn" data-english="roots or stems of plants">本</span><span class="known" data-pinyin="shū" data-english="book">书</span><span class="known" data-pinyin="zuì" data-english="most">最</span><span class="known" data-pinyin="tè" data-english="special">特</span><span class="known" data-pinyin="bié" data-english="separate">别</span>，<span class="known" data-pinyin="yīn" data-english="cause">因</span><span class="known" data-pinyin="wèi" data-english="do">为</span><span class="known" data-pinyin="tā" data-english="it">它</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="known" data-pinyin="de" data-english="of">的</span>。<br><br><span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="known" data-pinyin="qù" data-english="to go">去</span><span class="known" data-pinyin="nián" data-english="year">年</span><span class="known" data-pinyin="qù" data-english="to go">去</span><span class="known" data-pinyin="shì" data-english="generation">世</span><span class="known" data-pinyin="le" data-english="(modal particle intensifying preceding clause)">了</span>。<span class="known" data-pinyin="zài" data-english="(located) at">在</span><span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="dōng xi" data-english="thing">东西</span><span class="known" data-pinyin="lǐ" data-english="li (Chinese mile)">里</span>，<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="fā" data-english="issue">发</span><span class="known" data-pinyin="xiàn" data-english="appear">现</span><span class="known" data-pinyin="le" data-english="(modal particle intensifying preceding clause)">了</span><span class="known" data-pinyin="zhè" data-english="this">这</span><span class="known" data-pinyin="běn" data-english="roots or stems of plants">本</span><span class="unknown" data-pinyin="?" data-english="?">旧</span><span class="known" data-pinyin="shū" data-english="book">书</span>。<span class="known" data-pinyin="shū" data-english="book">书</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="unknown" data-pinyin="?" data-english="?">旧</span>，<span class="known" data-pinyin="yǒu" data-english="to have">有</span><span class="known" data-pinyin="xiē" data-english="some">些</span><span class="known" data-pinyin="de" data-english="earth">地</span><span class="known" data-pinyin="fāng" data-english="a square">方</span><span class="known" data-pinyin="yǐ" data-english="already">已</span><span class="known" data-pinyin="jīng" data-english="classic works">经</span><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="bù" data-english="(negative prefix)">不</span><span class="unknown" data-pinyin="?" data-english="?">清</span><span class="unknown" data-pinyin="?" data-english="?">楚</span><span class="known" data-pinyin="le" data-english="(modal particle intensifying preceding clause)">了</span>。<br><br><span class="known" data-pinyin="zhè" data-english="this">这</span><span class="known" data-pinyin="běn" data-english="roots or stems of plants">本</span><span class="known" data-pinyin="shū" data-english="book">书</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="known" data-pinyin="běn" data-english="roots or stems of plants">本</span><span class="known" data-pinyin="rì" data-english="sun">日</span><span class="unknown" data-pinyin="?" data-english="?">记</span>。<span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="known" data-pinyin="cóng" data-english="from">从</span><span class="known" data-pinyin="èr" data-english="two">二</span><span class="known" data-pinyin="shí" data-english="ten">十</span><span class="known" data-pinyin="suì" data-english="classifier for years (of age)">岁</span><span class="known" data-pinyin="kāi" data-english="to open">开</span><span class="unknown" data-pinyin="?" data-english="?">始</span><span class="known" data-pinyin="xiě" data-english="to write">写</span>，<span class="known" data-pinyin="yī" data-english="one">一</span><span class="known" data-pinyin="zhí" data-english="straight">直</span><span class="known" data-pinyin="xiě" data-english="to write">写</span><span class="known" data-pinyin="dào" data-english="go to">到</span><span class="known" data-pinyin="bā" data-english="eight">八</span><span class="known" data-pinyin="shí" data-english="ten">十</span><span class="known" data-pinyin="suì" data-english="classifier for years (of age)">岁</span>。<span class="known" data-pinyin="liù" data-english="six">六</span><span class="known" data-pinyin="shí" data-english="ten">十</span><span class="known" data-pinyin="nián" data-english="year">年</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="shí" data-english="time">时</span><span class="known" data-pinyin="jiān" data-english="midpoint">间</span>，<span class="known" data-pinyin="dōu" data-english="all">都</span><span class="known" data-pinyin="zài" data-english="(located) at">在</span><span class="known" data-pinyin="zhè" data-english="this">这</span><span class="known" data-pinyin="běn" data-english="roots or stems of plants">本</span><span class="known" data-pinyin="shū" data-english="book">书</span><span class="known" data-pinyin="lǐ" data-english="li (Chinese mile)">里</span>。<br><br><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="unknown" data-pinyin="?" data-english="?">页</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="unknown" data-pinyin="?" data-english="?">页</span><span class="known" data-pinyin="de" data-english="earth">地</span><span class="known" data-pinyin="kàn" data-english="to see">看</span>。<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="dào" data-english="go to">到</span><span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="known" data-pinyin="nián" data-english="year">年</span><span class="unknown" data-pinyin="?" data-english="?">轻</span><span class="known" data-pinyin="shí hou" data-english="time">时候</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="unknown" data-pinyin="?" data-english="?">梦</span><span class="known" data-pinyin="xiǎng" data-english="to think/want">想</span>，<span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="gōng zuò" data-english="to work">工作</span>，<span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="péng you" data-english="friend">朋友</span>。<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="dào" data-english="go to">到</span><span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="unknown" data-pinyin="?" data-english="?">遇</span><span class="known" data-pinyin="jiàn" data-english="see">见</span><span class="known" data-pinyin="wài" data-english="out">外</span><span class="unknown" data-pinyin="?" data-english="?">婆</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="nà" data-english="that">那</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="known" data-pinyin="tiān" data-english="day/sky">天</span>，<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="dào" data-english="go to">到</span><span class="known" data-pinyin="bà ba" data-english="(informal) father">爸爸</span><span class="known" data-pinyin="chū" data-english="go out">出</span><span class="known" data-pinyin="shēng" data-english="life">生</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="nà" data-english="that">那</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="known" data-pinyin="tiān" data-english="day/sky">天</span>。<br><br><span class="known" data-pinyin="shū" data-english="book">书</span><span class="known" data-pinyin="lǐ" data-english="li (Chinese mile)">里</span><span class="known" data-pinyin="yǒu" data-english="to have">有</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="known" data-pinyin="duō" data-english="many">多</span><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="bù" data-english="(negative prefix)">不</span><span class="known" data-pinyin="zhī" data-english="know">知</span><span class="known" data-pinyin="dào" data-english="path">道</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="unknown" data-pinyin="gù" data-english="old/reason">故</span><span class="known" data-pinyin="shì" data-english="affair">事</span>。<span class="known" data-pinyin="yuán" data-english="source">原</span><span class="known" data-pinyin="lái" data-english="to come">来</span><span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="known" data-pinyin="xiǎo" data-english="small">小</span><span class="known" data-pinyin="shí hou" data-english="time">时候</span><span class="known" data-pinyin="jiā" data-english="home">家</span><span class="known" data-pinyin="lǐ" data-english="li (Chinese mile)">里</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="unknown" data-pinyin="?" data-english="?">穷</span>，<span class="known" data-pinyin="dàn" data-english="only">但</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="unknown" data-pinyin="?" data-english="?">努</span><span class="known" data-pinyin="lì" data-english="power">力</span><span class="known" data-pinyin="xué xí" data-english="to learn">学习</span>。<span class="known" data-pinyin="yuán" data-english="source">原</span><span class="known" data-pinyin="lái" data-english="to come">来</span><span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="known" data-pinyin="nián" data-english="year">年</span><span class="unknown" data-pinyin="?" data-english="?">轻</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="shí hou" data-english="time">时候</span><span class="known" data-pinyin="xiǎng" data-english="to think/want">想</span><span class="known" data-pinyin="dāng" data-english="bear">当</span><span class="unknown" data-pinyin="?" data-english="?">画</span><span class="known" data-pinyin="jiā" data-english="home">家</span>，<span class="known" data-pinyin="dàn" data-english="only">但</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="hòu" data-english="queen">后</span><span class="known" data-pinyin="lái" data-english="to come">来</span><span class="known" data-pinyin="dāng" data-english="bear">当</span><span class="known" data-pinyin="le" data-english="(modal particle intensifying preceding clause)">了</span><span class="known" data-pinyin="lǎo shī" data-english="teacher">老师</span>。<br><br><span class="known" data-pinyin="zuì" data-english="most">最</span><span class="unknown" data-pinyin="?" data-english="?">让</span><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="gǎn" data-english="feel">感</span><span class="known" data-pinyin="dòng" data-english="move">动</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="zuì" data-english="most">最</span><span class="known" data-pinyin="hòu" data-english="queen">后</span><span class="known" data-pinyin="jǐ" data-english="how much">几</span><span class="unknown" data-pinyin="?" data-english="?">页</span>。<span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="known" data-pinyin="xiě" data-english="to write">写</span><span class="known" data-pinyin="dào" data-english="path">道</span>："<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="zhè" data-english="this">这</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="known" data-pinyin="shēng" data-english="life">生</span><span class="known" data-pinyin="zuì" data-english="most">最</span><span class="unknown" data-pinyin="?" data-english="?">幸</span><span class="unknown" data-pinyin="?" data-english="?">福</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="known" data-pinyin="shì" data-english="affair">事</span>，<span class="known" data-pinyin="jiù" data-english="just">就</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="zhe" data-english="make move">着</span><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="unknown" data-pinyin="?" data-english="?">孩</span><span class="known" data-pinyin="zi" data-english="offspring">子</span><span class="known" data-pinyin="hé" data-english="and">和</span><span class="unknown" data-pinyin="?" data-english="?">孙</span><span class="known" data-pinyin="zi" data-english="offspring">子</span><span class="known" data-pinyin="zhǎng" data-english="long">长</span><span class="known" data-pinyin="dà" data-english="big">大</span>。"<br><br><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="unknown" data-pinyin="?" data-english="?">完</span><span class="known" data-pinyin="zhè" data-english="this">这</span><span class="known" data-pinyin="běn" data-english="roots or stems of plants">本</span><span class="known" data-pinyin="shū" data-english="book">书</span>，<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="unknown" data-pinyin="?" data-english="?">哭</span><span class="known" data-pinyin="le" data-english="(modal particle intensifying preceding clause)">了</span>。<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="jué" data-english="decide">决</span><span class="known" data-pinyin="dìng" data-english="decide">定</span>，<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="yě" data-english="also">也</span><span class="known" data-pinyin="yào" data-english="necessary">要</span><span class="known" data-pinyin="kāi" data-english="to open">开</span><span class="unknown" data-pinyin="?" data-english="?">始</span><span class="known" data-pinyin="xiě" data-english="to write">写</span><span class="known" data-pinyin="rì" data-english="sun">日</span><span class="unknown" data-pinyin="?" data-english="?">记</span>。<span class="known" data-pinyin="yě" data-english="also">也</span><span class="known" data-pinyin="xǔ" data-english="allow">许</span><span class="known" data-pinyin="hěn" data-english="(adverb of degree)">很</span><span class="known" data-pinyin="duō" data-english="many">多</span><span class="known" data-pinyin="nián" data-english="year">年</span><span class="known" data-pinyin="yǐ" data-english="by means of">以</span><span class="known" data-pinyin="hòu" data-english="queen">后</span>，<span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="unknown" data-pinyin="?" data-english="?">孙</span><span class="known" data-pinyin="zi" data-english="offspring">子</span><span class="known" data-pinyin="yě" data-english="also">也</span><span class="known" data-pinyin="huì" data-english="can">会</span><span class="known" data-pinyin="kàn" data-english="to see">看</span><span class="known" data-pinyin="dào" data-english="go to">到</span><span class="known" data-pinyin="wǒ" data-english="I">我</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="unknown" data-pinyin="gù" data-english="old/reason">故</span><span class="known" data-pinyin="shì" data-english="affair">事</span>。<br><br><span class="known" data-pinyin="wài" data-english="out">外</span><span class="known" data-pinyin="gōng" data-english="fair">公</span><span class="unknown" data-pinyin="?" data-english="?">虽</span><span class="known" data-pinyin="rán" data-english="yes">然</span><span class="known" data-pinyin="bù" data-english="(negative prefix)">不</span><span class="known" data-pinyin="zài" data-english="(located) at">在</span><span class="known" data-pinyin="le" data-english="(modal particle intensifying preceding clause)">了</span>，<span class="known" data-pinyin="dàn" data-english="only">但</span><span class="known" data-pinyin="shì" data-english="is">是</span><span class="known" data-pinyin="tā" data-english="he or him">他</span><span class="known" data-pinyin="de" data-english="of">的</span><span class="unknown" data-pinyin="gù" data-english="old/reason">故</span><span class="known" data-pinyin="shì" data-english="affair">事</span><span class="known" data-pinyin="huì" data-english="can">会</span><span class="known" data-pinyin="yī" data-english="one">一</span><span class="known" data-pinyin="zhí" data-english="straight">直</span><span class="known" data-pinyin="zài" data-english="(located) at">在</span>。</div>
+        
+        <div class="actions">
+            <button id="readBtn" class="read-btn unread" onclick="toggleRead()">
+                ✓ Mark as Read
+            </button>
+        </div>
+        
+        <div class="legend">
+            <span class="legend-unknown">Highlighted</span> = Beyond HSK 1 (hover for pinyin + translation)
+        </div>
+    </main>
+    
+    <div id="tooltip" class="tooltip" style="display: none;"></div>
+    
+    <script>
+        const DATE_KEY = '2026-02-03';
+        const tooltip = document.getElementById('tooltip');
+        const readBtn = document.getElementById('readBtn');
+        
+        
+        function getReadArticles() {
+            return JSON.parse(localStorage.getItem('chineseReaderRead') || '[]');
+        }
+        function saveReadArticles(articles) {
+            localStorage.setItem('chineseReaderRead', JSON.stringify(articles));
+        }
+        function updateSidebar() {
+            const read = getReadArticles();
+            let readCount = 0;
+            document.querySelectorAll('.sidebar li').forEach(li => {
+                const date = li.dataset.date;
+                const check = li.querySelector('.check');
+                if (read.includes(date)) {
+                    li.classList.add('read');
+                    check.textContent = '✓';
+                    readCount++;
+                } else {
+                    li.classList.remove('read');
+                    check.textContent = '○';
+                }
+            });
+            const stats = document.querySelector('.sidebar .stats');
+            const total = document.querySelectorAll('.sidebar li').length;
+            if (stats) stats.textContent = `${readCount} / ${total} articles read`;
+        }
+    
+        
+        function isRead() {
+            return getReadArticles().includes(DATE_KEY);
+        }
+        
+        function updateButton() {
+            if (isRead()) {
+                readBtn.textContent = '✓ Read';
+                readBtn.className = 'read-btn done';
+            } else {
+                readBtn.textContent = '✓ Mark as Read';
+                readBtn.className = 'read-btn unread';
+            }
+        }
+        
+        function toggleRead() {
+            const articles = getReadArticles();
+            if (isRead()) {
+                const idx = articles.indexOf(DATE_KEY);
+                articles.splice(idx, 1);
+            } else {
+                articles.push(DATE_KEY);
+            }
+            saveReadArticles(articles);
+            updateButton();
+            updateSidebar();
+        }
+        
+        updateButton();
+        updateSidebar();
+        
+        document.querySelectorAll('.known, .unknown').forEach(el => {
+            el.addEventListener('mouseenter', (e) => {
+                const pinyin = e.target.dataset.pinyin;
+                const english = e.target.dataset.english;
+                if (pinyin && english) {
+                    tooltip.innerHTML = `<span class="pinyin">${pinyin}</span><br><span class="english">${english}</span>`;
+                    tooltip.style.display = 'block';
+                }
+            });
+            el.addEventListener('mousemove', (e) => {
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+            });
+            el.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
