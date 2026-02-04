@@ -8,9 +8,115 @@ import csv
 import json
 import os
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
+
+def is_chinese_char(char):
+    """Check if character is in CJK Unified Ideographs range"""
+    return '\u4e00' <= char <= '\u9fff'
+
+def validate_vocab_entry(chinese, pinyin, english, source_file="", line_num=0):
+    """
+    Validate a vocab entry. Returns (is_valid, errors) tuple.
+    Checks:
+    - Chinese field contains at least one Chinese character
+    - Pinyin is not empty or '?'
+    - English is not empty or '?'
+    """
+    errors = []
+    
+    # Check Chinese field
+    if not chinese or not chinese.strip():
+        errors.append("Empty Chinese field")
+    elif not any(is_chinese_char(c) for c in chinese):
+        errors.append(f"No Chinese characters found in '{chinese}'")
+    
+    # Check pinyin field
+    if not pinyin or not pinyin.strip():
+        errors.append("Empty pinyin field")
+    elif pinyin.strip() == '?':
+        errors.append("Pinyin is '?' (placeholder)")
+    
+    # Check english field
+    if not english or not english.strip():
+        errors.append("Empty English field")
+    elif english.strip() == '?':
+        errors.append("English is '?' (placeholder)")
+    
+    is_valid = len(errors) == 0
+    if errors and source_file:
+        errors = [f"{source_file}:{line_num}: {e}" for e in errors]
+    
+    return is_valid, errors
+
+def validate_vocab_file(csv_path):
+    """Validate all entries in a vocab CSV file. Returns (valid_count, error_list)."""
+    errors = []
+    valid_count = 0
+    
+    if not csv_path.exists():
+        return 0, [f"{csv_path}: File not found"]
+    
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for line_num, row in enumerate(reader, 1):
+            if len(row) < 3:
+                if row and any(r.strip() for r in row):  # Skip empty lines
+                    errors.append(f"{csv_path.name}:{line_num}: Incomplete row (need 3 columns): {row}")
+                continue
+            
+            chinese, pinyin, english = row[0], row[1], row[2]
+            is_valid, entry_errors = validate_vocab_entry(
+                chinese, pinyin, english, 
+                source_file=csv_path.name, line_num=line_num
+            )
+            
+            if is_valid:
+                valid_count += 1
+            else:
+                errors.extend(entry_errors)
+    
+    return valid_count, errors
+
+def validate_all_vocab(verbose=True):
+    """
+    Validate all vocab files. Returns True if all valid, False otherwise.
+    This is the main validation hook for pre-generation checks.
+    """
+    base_path = Path(__file__).parent
+    vocab_files = [
+        base_path / "vocab_main.csv",
+        base_path / "extra_vocab.csv",
+        base_path / "hsk1.csv",
+    ]
+    
+    all_valid = True
+    total_valid = 0
+    all_errors = []
+    
+    for vocab_file in vocab_files:
+        if vocab_file.exists():
+            valid_count, errors = validate_vocab_file(vocab_file)
+            total_valid += valid_count
+            if errors:
+                all_valid = False
+                all_errors.extend(errors)
+            if verbose:
+                status = "✓" if not errors else "✗"
+                print(f"{status} {vocab_file.name}: {valid_count} valid entries, {len(errors)} errors")
+    
+    if all_errors and verbose:
+        print(f"\n❌ VALIDATION ERRORS ({len(all_errors)} total):")
+        for err in all_errors[:20]:  # Limit output
+            print(f"  {err}")
+        if len(all_errors) > 20:
+            print(f"  ... and {len(all_errors) - 20} more errors")
+    elif verbose:
+        print(f"\n✅ All vocab validated: {total_valid} total entries")
+    
+    return all_valid
 
 def load_main_vocab():
     """Load main vocabulary (frequency-based 300 chars + HSK1 + curated additions)"""
@@ -53,9 +159,6 @@ def load_extra_vocab():
                     chinese, pinyin, english = row[0], row[1], row[2]
                     vocab[chinese] = {'pinyin': pinyin, 'english': english}
     return vocab
-
-def is_chinese_char(char):
-    return '\u4e00' <= char <= '\u9fff'
 
 def process_text(text, known_vocab, extra_vocab):
     """
@@ -804,4 +907,31 @@ def main():
     return date_key
 
 if __name__ == "__main__":
+    # CLI argument handling
+    if len(sys.argv) > 1:
+        if sys.argv[1] in ('--validate', '-v', 'validate'):
+            # Run validation only
+            success = validate_all_vocab(verbose=True)
+            sys.exit(0 if success else 1)
+        elif sys.argv[1] in ('--help', '-h', 'help'):
+            print("Usage: python generate_article.py [command]")
+            print("")
+            print("Commands:")
+            print("  (none)      Generate today's article")
+            print("  validate    Validate all vocab files only (no generation)")
+            print("  --help      Show this help message")
+            sys.exit(0)
+        else:
+            print(f"Unknown argument: {sys.argv[1]}")
+            print("Use --help for usage information")
+            sys.exit(1)
+    
+    # Default: validate first, then generate
+    print("=== Pre-generation vocab validation ===")
+    if not validate_all_vocab(verbose=True):
+        print("\n❌ Vocab validation failed! Fix errors before generating.")
+        print("Run 'python generate_article.py validate' to check vocab files")
+        sys.exit(1)
+    print("")
+    
     main()
